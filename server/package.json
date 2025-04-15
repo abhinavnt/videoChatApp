@@ -15,7 +15,9 @@
     "express": "^5.1.0",
     "mon": "^0.0.8",
     "node": "^23.11.0",
-    "nodemon": "^3.1.9",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }
