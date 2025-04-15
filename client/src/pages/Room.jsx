@@ -45,23 +45,25 @@ const Room = () => {
         setMystream(stream)
     },[])
 
-      const handleNegeosiation= useCallback(()=>{
-        const localOffer=peer.createOffer()
-            socket.emit('call-user',{emailId:remoteEmailId,offer:localOffer})
-             
-        },[])
+    const handleNegeosiation = useCallback(async () => {
+        if (peer.signalingState === 'stable') {
+            const localOffer = await peer.createOffer();
+            await peer.setLocalDescription(localOffer);
+            socket.emit('call-user', { emailId: remoteEmailId, offer: localOffer });
+        }
+    }, [peer, socket, remoteEmailId]);
 
-    useEffect(()=>{
-       socket.on('user-joined',handleNewUserJoined)
-       socket.on('incomming-call',handleIncommingCall)
-       socket.on('call-accepted',handleCallAccepted)
-       
-    //    return ()=>{
-    //     socket.off('user-joined',handleNewUserJoined)
-    //     socket.off('incomming-call',handleIncommingCall)
-    //     socket.off('call-accepted',handleCallAccepted)
-    //    }
-    },[socket,handleNewUserJoined,handleIncommingCall,handleCallAccepted])
+    useEffect(() => {
+        socket.on('user-joined', handleNewUserJoined);
+        socket.on('incomming-call', handleIncommingCall);
+        socket.on('call-accepted', handleCallAccepted);
+    
+        return () => {
+            socket.off('user-joined', handleNewUserJoined);
+            socket.off('incomming-call', handleIncommingCall);
+            socket.off('call-accepted', handleCallAccepted);
+        };
+    }, [socket, handleNewUserJoined, handleIncommingCall, handleCallAccepted]);
 
     useEffect(()=>{
         peer.addEventListener('negotiationneeded',handleNegeosiation)
@@ -82,8 +84,10 @@ const Room = () => {
     <div className='room-page-container'>
       <h1>room page</h1>
       <h4>you are connected to {remoteEmailId}</h4>
-      <button onClick={e=>sendStream(myStream)}>Send my video</button>
+      <button onClick={e => myStream && sendStream(myStream)}>Send my video</button>
       <ReactPlayer url={myStream} playing />
+      <br />
+    
       <ReactPlayer url={remoteStream} playing/>
     </div>
   )

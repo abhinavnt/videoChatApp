@@ -34,16 +34,25 @@ export const PeerProvider=(props)=>{
         return answer
     }
 
-    const setRemoteAns= async (ans)=>{
-        await peer.setRemoteDescription(ans)
-    }
-
-    const sendStream=async(stream)=>{
-        const tracks=stream.getTrack()
-        for(const track of tracks){
-            peer.addTrack(track,stream)
+    const setRemoteAns = async (ans) => {
+        if (peer.signalingState !== 'stable') {
+            await peer.setRemoteDescription(ans);
+        } else {
+            console.warn('Peer connection is in stable state, skipping setRemoteDescription');
         }
-    }
+    };
+
+    const sendStream = async (stream) => {
+        if (!stream) return; // Guard clause if stream is null
+        const tracks = stream.getTracks();
+        for (const track of tracks) {
+            const senders = peer.getSenders();
+            const sender = senders.find(s => s.track === track);
+            if (!sender) {
+                peer.addTrack(track, stream);
+            }
+        }
+    };
 
     const handleTrackEvent=useCallback((ev)=>{
         const streams=ev.streams;
